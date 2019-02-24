@@ -161,6 +161,7 @@ typedef struct {
     int frame_max;
     int channel_max;
     int heartbeat;
+    int connect_timeout;
 
     int sockfd;
     int connected;

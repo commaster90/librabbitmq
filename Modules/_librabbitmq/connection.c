@@ -974,6 +974,7 @@ PyRabbitMQ_ConnectionType_init(PyRabbitMQ_Connection *self,
         "channel_max",
         "frame_max",
         "heartbeat",
+        "connect_timeout",
         "client_properties",
         NULL
     };
@@ -985,12 +986,14 @@ PyRabbitMQ_ConnectionType_init(PyRabbitMQ_Connection *self,
     int channel_max = 0xffff;
     int frame_max = 131072;
     int heartbeat = 0;
+    int connect_timeout = -1;
     int port = 5672;
     PyObject *client_properties = NULL;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|ssssiiiiO", kwlist,
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|ssssiiiiiO", kwlist,
                                      &hostname, &userid, &password, &virtual_host, &port,
-                                     &channel_max, &frame_max, &heartbeat, &client_properties)) {
+                                     &channel_max, &frame_max, &heartbeat, &connect_timeout,
+                                     &client_properties)) {
         return -1;
     }
 
@@ -1012,6 +1015,7 @@ PyRabbitMQ_ConnectionType_init(PyRabbitMQ_Connection *self,
     self->channel_max = channel_max;
     self->frame_max = frame_max;
     self->heartbeat = heartbeat;
+    self->connect_timeout = connect_timeout;
     self->weakreflist = NULL;
     self->callbacks = PyDict_New();
     if (self->callbacks == NULL) return -1;
@@ -1065,7 +1069,12 @@ PyRabbitMQ_Connection_connect(PyRabbitMQ_Connection *self)
         goto error;
     }
     Py_BEGIN_ALLOW_THREADS;
-    status = amqp_socket_open(socket, self->hostname, self->port);
+    if (self->connect_timeout >= 0) {
+      struct timeval tv = {self->connect_timeout, 0};
+      status = amqp_socket_open_noblock(socket, self->hostname, self->port, &tv);
+    } else {
+      status = amqp_socket_open(socket, self->hostname, self->port);
+    }
     Py_END_ALLOW_THREADS;
     if (PyRabbitMQ_HandleAMQStatus(status, "Error opening socket")) {
         goto error;
