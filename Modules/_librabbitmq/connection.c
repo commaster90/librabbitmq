@@ -1128,7 +1128,7 @@ PyRabbitMQ_Connection_close(PyRabbitMQ_Connection *self)
         self->connected = 0;
 
         Py_BEGIN_ALLOW_THREADS
-        reply = amqp_connection_close(self->conn, AMQP_REPLY_SUCCESS);
+        // reply = amqp_connection_close(self->conn, AMQP_REPLY_SUCCESS);
         amqp_destroy_connection(self->conn);
         self->sockfd = 0;
         Py_END_ALLOW_THREADS
@@ -1185,7 +1185,7 @@ PyRabbitMQ_Connection_destroy_channel(PyRabbitMQ_Connection *self,
 {
     amqp_rpc_reply_t reply;
     Py_BEGIN_ALLOW_THREADS;
-    reply = amqp_channel_close(self->conn, channel, AMQP_REPLY_SUCCESS);
+    // reply = amqp_channel_close(self->conn, channel, AMQP_REPLY_SUCCESS);
     amqp_maybe_release_buffers_on_channel(self->conn, channel);
     Py_END_ALLOW_THREADS;
 
